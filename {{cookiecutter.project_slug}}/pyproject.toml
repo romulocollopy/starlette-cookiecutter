@@ -1,10 +1,8 @@
 [tool.poetry]
-# name = "{{ cookiecutter.project_name }}"
-name = "Hope"
+name = "{{ cookiecutter.project_name }}"
 version = "0.1.0"
-description = ""
-# authors = ["{{ cookiecutter.author_name }} <{{cookiecutter.author_email}}>"]
-authors = ["Romulo <cookiecutter.author_email>"]
+description = "{{ cookiecutter.description }}"
+authors = ["{{ cookiecutter.author_name }} <{{cookiecutter.email}}>"]
 
 [tool.mypy]
 plugins = "sqlmypy"
