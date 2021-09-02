@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import asyncio
 
-from alembic import command
-from alembic.config import Config
+from alembic import command  # type: ignore
+from alembic.config import Config  # type: ignore
 from asyncpg.exceptions import InvalidCatalogNameError  # type: ignore
-from sqlalchemy import text  # type: ignore
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine  # type: ignore
+from sqlalchemy.ext.asyncio.engine import AsyncEngine  # type: ignore
 
 from app import settings
 from chassis.models import metadata
@@ -21,15 +22,15 @@ def run_migrations() -> None:
     command.upgrade(alembic_cfg, "head")
 
 
-def init_db():
+def init_db() -> None:
     asyncio.run(setup_db())
 
 
-async def get_engine():
+async def get_engine() -> AsyncEngine:
     return create_async_engine(str(settings.DATABASE_URL), echo=settings.DEBUG)
 
 
-async def setup_db():
+async def setup_db() -> None:
     engine = create_async_engine(str(settings.DATABASE_URL), echo=settings.DEBUG)
     try:
         async with engine.connect() as conn:
@@ -39,7 +40,7 @@ async def setup_db():
         await setup_db()
 
 
-async def create_db():
+async def create_db() -> None:
     database_url = settings.DATABASE_URL
     db_name = database_url.path[1:]
     db_server = str(database_url.replace(path=""))
@@ -49,11 +50,11 @@ async def create_db():
         await conn.execute(text(f"CREATE DATABASE {db_name};"))
 
 
-def teardown_db():
+def teardown_db() -> None:
     asyncio.run(drop_test_db())
 
 
-async def drop_test_db():
+async def drop_test_db() -> None:
     if "test" not in settings.DATABASE_URL.path:
         return
 
@@ -63,4 +64,4 @@ async def drop_test_db():
 
     async with engine.connect() as conn:
         await conn.run_sync(metadata.drop_all)
-        await conn.execute(text(f"DROP table alembic_version;"))
+        await conn.execute(text("DROP table alembic_version;"))

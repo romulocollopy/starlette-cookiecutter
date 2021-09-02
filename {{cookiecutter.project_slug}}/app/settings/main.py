@@ -1,9 +1,11 @@
+from pathlib import Path
+
 from starlette.config import Config
 from starlette.datastructures import URL, Secret
-from pathlib import Path
 
 config = Config(".env")
 
+PORT = config("PORT", default='8088')
 DEBUG = config('DEBUG', cast=bool, default=False)
 SECRET_KEY = config('SECRET_KEY', cast=Secret)
 DATABASE_URL = config('DATABASE_URL', cast=URL)

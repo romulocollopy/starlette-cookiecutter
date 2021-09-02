@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import os
+from typing import Generator
 
 import pytest  # type: ignore
 from starlette.config import environ
@@ -11,12 +14,12 @@ os.environ["TESTING"] = "True"
 environ["TESTING"] = "TRUE"
 
 
-@pytest.fixture(autouse=True)
-def setup_test_database():
+@pytest.fixture()
+def setup_test_database() -> Generator[None, None, None]:
     """
     Create a clean test database every time the tests are run.
     """
-    from infra.db import teardown_db, run_migrations, init_db
+    from infra.db import init_db, run_migrations, teardown_db
 
     init_db()
     run_migrations()
@@ -26,7 +29,7 @@ def setup_test_database():
 
 
 @pytest.fixture()
-def client():
+def client() -> Generator[TestClient, None, None]:
     """
     Make a 'client' fixture available to test cases.
     """

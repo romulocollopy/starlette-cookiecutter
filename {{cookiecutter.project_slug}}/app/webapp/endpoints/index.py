@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from app import settings
 from starlette.endpoints import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+
+from app import settings
 
 PROJECT_NAME = "{{ cookiecutter.project_name }}"
 

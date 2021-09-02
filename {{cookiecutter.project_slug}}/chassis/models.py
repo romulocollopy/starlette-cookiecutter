@@ -3,10 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from itertools import chain
+from typing import Any
 from uuid import UUID
 
-import sqlalchemy  # type: ignore
-from sqlalchemy.dialects.postgresql import UUID as UUIDField  # type: ignore
+import sqlalchemy
+from sqlalchemy.dialects.postgresql import UUID as UUIDField
 from sqlalchemy.orm import registry  # type: ignore
 
 mapper_registry = registry()
@@ -49,12 +50,12 @@ class BaseModel:
         self.active = True
 
     @classmethod
-    def register(cls, table: sqlalchemy.Table, **properties) -> None:
+    def register(cls, table: sqlalchemy.Table, **properties: dict[str, Any]) -> None:
         cls.table = table
         mapper_registry.map_imperatively(cls, table, properties=properties)
 
     @classmethod
-    def build_table(cls, *args, **kwargs) -> sqlalchemy.Table:
+    def build_table(cls, *args: Any, **kwargs: Any) -> sqlalchemy.Table:
         args = tuple(a for a in chain(args, DEFAULT_COLUMS, [DEFAULT_INDEX]))
         table_name = kwargs.pop("table_name", None) or f"{cls.__name__.lower()}s"
         kwargs["schema"] = kwargs.get("schema", "public")

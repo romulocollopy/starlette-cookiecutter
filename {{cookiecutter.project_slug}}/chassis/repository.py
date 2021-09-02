@@ -42,7 +42,7 @@ class BaseRepository:
 
     @property
     def table(self) -> Table:
-        if not self.model.table:
+        if self.model.table is None:
             raise TableNotDefined(f"{self.model} didn't define a Table")
         return self.model.table
 
