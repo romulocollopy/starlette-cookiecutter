@@ -14,7 +14,6 @@ class Home(HTTPEndpoint):
         return HTMLResponse(html)
 
 
-
 html = """
 <!DOCTYPE html>
 <html>
@@ -47,4 +46,6 @@ html = """
         </script>
     </body>
 </html>
-""".format(settings.PORT)
+""".format(
+    settings.PORT
+)

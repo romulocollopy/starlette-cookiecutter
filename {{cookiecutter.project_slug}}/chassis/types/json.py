@@ -1,10 +1,11 @@
 from __future__ import annotations
-import re
+
 import datetime
 import decimal
 import json
+import re
 from dataclasses import dataclass, field
-from typing import Any, Union, Iterable
+from typing import Any, Iterable, Union
 
 JSONData = Union[dict, list, str, bytes]
 
@@ -12,12 +13,14 @@ JSONData = Union[dict, list, str, bytes]
 @dataclass
 class JSON:
     _data: JSONData = field(default_factory=dict)
+    parse_dates: bool = False
 
     def __post_init__(self) -> None:
         if not (isinstance(self._data, dict) or isinstance(self._data, list)):
             self._data = json.loads(
                 self._data,
                 parse_float=decimal.Decimal,
+                parse_dates=self.parse_dates,
                 cls=CustomDecoder,
             )
 
@@ -31,7 +34,7 @@ class JSON:
         if not isinstance(self._data, dict):
             return self._data[int(name)]
 
-        return self._data[name]
+        return JSON(self._data[name])
 
 
 class CustomEncoder(json.JSONEncoder):
@@ -46,14 +49,32 @@ class CustomEncoder(json.JSONEncoder):
 
 
 class CustomDecoder(json.JSONDecoder):
+    is_date = re.compile(r"\d{4}-\d{2}-\d{2}")
+    is_datetime = re.compile(r"\d{4}-\d{2}-\d{2}T.*")
+
+    def __init__(self, parse_dates: bool = False, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.parse_dates = parse_dates
+
     def decode(self, obj: str) -> JSONData:
         obj = super().decode(obj)
+        if not self.parse_dates:
+            return obj
         return self.walk(obj)
+
+    def _parse_dates(self, data: str) -> datetime.datetime | datetime.date:
+        if self.is_datetime.match(data):
+            return datetime.datetime.fromisoformat(data)
+
+        if self.is_date.match(data):
+            return datetime.date.fromisoformat(data)
+
+        raise ValueError
 
     def walk(self, obj: Iterable) -> Any:
         if isinstance(obj, str):
             try:
-                return parse_dates(obj)
+                return self._parse_dates(obj)
             except ValueError:
                 return obj
 
@@ -61,7 +82,7 @@ class CustomDecoder(json.JSONDecoder):
             keys = tuple(obj.keys())
             for k in keys:
                 try:
-                    _k = parse_dates(k)
+                    _k = self._parse_dates(k)
                 except ValueError:
                     obj[k] = self.walk(obj[k])
                 else:
@@ -72,22 +93,9 @@ class CustomDecoder(json.JSONDecoder):
             for i in range(len(obj)):
                 if isinstance(obj[i], str):
                     try:
-                        obj[i] = parse_dates(obj[i])
+                        obj[i] = self._parse_dates(obj[i])
                     except ValueError:
                         pass
                 self.walk(obj[i])
 
         return obj
-
-
-def parse_dates(data: str) -> datetime.datetime | datetime.date:
-    is_date = re.compile(r"\d{4}-\d{2}-\d{2}")
-    is_datetime = re.compile(r"\d{4}-\d{2}-\d{2}T.*")
-
-    if is_datetime.match(data):
-        return datetime.datetime.fromisoformat(data)
-
-    if is_date.match(data):
-        return datetime.date.fromisoformat(data)
-
-    raise ValueError
