@@ -62,3 +62,19 @@ def test_parse_date_on_key() -> None:
         {DATE: ["things"]},
         {DATETIME: {DATE: [DATETIME]}},
     ]
+
+
+def test_encode_date_on_keys() -> None:
+    js = JSON({}, parse_dates=True)
+
+    js._data = [
+        {DATE: ["things"]},
+        {DATETIME: {DATE: [DATETIME]}},
+    ]
+
+    assert str(js) == json.dumps(
+        [
+            {DATE.isoformat(): ["things"]},
+            {DATETIME.isoformat(): {DATE.isoformat(): [DATETIME.isoformat()]}},
+        ]
+    )
